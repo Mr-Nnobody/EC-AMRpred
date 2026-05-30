@@ -5,7 +5,22 @@ import multer from "multer";
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
-app.use(cors());
+const allowedOrigins = [
+  "https://ec-amrpred.onrender.com",
+  "http://localhost:5173",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("CORS origin not allowed."));
+    },
+  }),
+);
 
 const starterSpecies = [
   "Escherichia coli",
