@@ -1,143 +1,193 @@
-# EC-AMRpred Clinical Interface
+﻿# EC-AMRpred
 
-EC-AMRpred is a clinician-facing interface for the mlAMRPred antimicrobial resistance research project. It provides a focused workflow to upload a FASTA file, select organism and antibiotic context, and review predicted resistance signals in a clear, clinical-friendly summary.
+EC-AMRpred is a scientific web platform for rapid antimicrobial resistance (AMR) screening in E. coli using whole-genome or assembled sequence input. The system integrates sequence-derived k-mer features, trained antibiotic-specific classifiers, and database-guided annotation into a single decision-support workflow for research and translational review.
 
-This repository contains a React (Vite) frontend and a Node/Express backend. The backend currently serves mock analysis output for demonstration and integration testing while the research model pipeline is integrated.
+The repository contains a FastAPI backend and a React/Vite frontend designed to accept FASTA uploads, predict resistance status for selected antibiotics, and summarize plausible resistance mechanisms through CARD and E. coli mapping.
 
-## Key features
+## Overview
 
-- Simple clinical workflow for FASTA-based resistance prediction
-- Antibiotic and organism selection with validated upload handling
-- Structured results layout for rapid interpretation
-- Backend API designed to be swapped to a production model pipeline
+The workflow is built around the following sequence of operations:
 
-## Architecture
+1. Accept a FASTA file upload from the browser.
+2. Validate organism and antibiotic inputs.
+3. Count k-mers from the sequence using the KMC CLI.
+4. Align the resulting feature vector to the trained vocabulary for the chosen antibiotic.
+5. Run the saved LightGBM classifier to produce a probability score.
+6. Apply an antibiotic-specific decision threshold to assign a resistance status.
+7. Rank active k-mers by model-native gain importance.
+8. BLAST the most predictive k-mers against CARD and E. coli databases.
+9. Return a structured summary report to the frontend.
 
-- Frontend: React + Vite
-- Backend: Node.js + Express + Multer
-- Data flow: Browser -> API -> JSON response -> UI summary cards
+## Scientific motivation
 
-## Repository layout
+Antimicrobial resistance prediction from genomic sequence data is most informative when coupled with explainability. EC-AMRpred therefore combines statistical prediction with biological interpretation: the model output is not only a label but also a ranked set of candidate resistance-associated determinants and mapping context.
 
-- Frontend (Vite app) at repository root
-- Backend API in the `server/` directory
+## Core features
+
+- FASTA-based input handling
+- E. coli-locked organism workflow
+- Antibiotic-specific inference routing
+- Probability-threshold decision logic
+- Native LightGBM gain-based feature prioritization
+- CARD-based AMR marker detection
+- E. coli reference mapping for contextual interpretation
+- Structured front-end summary for model outcomes and gene associations
+
+## System architecture
+
+### Frontend
+
+- React + Vite
+- Clinical dashboard and prediction summary UI
+- HTTP multipart requests to the FastAPI endpoint
+
+### Backend
+
+- FastAPI application with Pydantic models
+- Endpoint: POST /api/v1/predict
+- Sequence processing, model loading, and annotation logic in the AMR pipeline module
+
+### Data layer
+
+- model artifacts in server/fastapi_app/models/
+- CARD database in server/card_database/
+- E. coli reference database in server/ecoli_database/
+- KMC binaries in server/fastapi_app/kmc/
+
+## Repository structure
+
+```text
+EC-AMRpred/
+├── src/                          # React frontend source
+├── server/
+│   ├── fastapi_app/
+│   │   ├── amr_pipeline.py      # inference, k-mer extraction, annotation flow
+│   │   ├── main.py              # FastAPI app entry point
+│   │   ├── models.py            # API response schemas
+│   │   ├── models/              # saved model vocabularies and metadata
+│   │   └── kmc/                 # local KMC executables
+│   ├── card_database/           # CARD BLAST database
+│   ├── ecoli_database/          # E. coli reference BLAST database
+│   ├── requirements.txt         # Python backend dependencies
+│   └── README.md                # backend service notes
+├── package.json                 # frontend dependencies and scripts
+├── vite.config.js               # Vite configuration
+├── index.html                   # frontend entry document
+├── LICENSE                      # project license
+├── README.md                    # project overview and usage instructions
+└── .gitignore
+```
 
 ## Requirements
 
-- Node.js 18+ recommended
-- npm 9+ recommended
+- Node.js 18+
+- npm 9+
+- Python 3.10+
+- BLASTN installed and available in PATH
+- KMC binary package available in the project bundle
 
-## Local development
+## Local setup
 
-### 1) Start the API
+### Backend
+
+From the project root:
 
 ```powershell
 cd server
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+On Unix-like systems:
+
+```bash
+cd server
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn fastapi_app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+The backend is available at:
+
+- http://localhost:8000/health
+- http://localhost:8000/api/v1/predict
+
+### Frontend
+
+Open a second terminal and run:
+
+```powershell
+cd .
 npm install
 npm run dev
 ```
 
-The API listens on http://localhost:5170 by default.
+The frontend is served by Vite at:
 
-### 2) Start the frontend
+- http://localhost:5173
 
-```powershell
-cd ..
-npm install
-npm run dev
-```
-
-The frontend will run on http://localhost:5173 by default.
-
-## Environment variables
-
-Frontend:
-
-- `VITE_API_BASE` - Base URL for the API. Defaults to http://localhost:5170.
-
-Example (PowerShell):
+Optional API override:
 
 ```powershell
-$env:VITE_API_BASE = "http://localhost:5170"
+$env:VITE_API_BASE = "http://localhost:8000"
 ```
 
-Backend:
+## API contract
 
-- `PORT` - Port for the API server. Defaults to 5170.
+### Request
 
-## API endpoints (MVP)
+The prediction endpoint accepts multipart form data with:
 
-Base URL: `http://localhost:5170`
+- organism
+- antibiotic
+- fasta_file
 
-### GET /api/species
-
-Returns the list of supported organisms.
-
-Example response:
+### Example response
 
 ```json
 {
-  "species": ["Escherichia coli", "Staphylococcus aureus"]
+  "report_id": "REP-XXXXXX",
+  "antibiotic_response": {
+    "antibiotic": "ampicillin",
+    "status": "Resistant",
+    "confidence": "80.2%"
+  },
+  "detected_organism": {
+    "organism": "E. coli",
+    "confidence": "82%"
+  },
+  "amr_markers": ["tetA(58) [Paenibacillus sp. LC231]"],
+  "gene_mappings": [
+    {
+      "gene": "tetA(58) [Paenibacillus sp. LC231]",
+      "tag": "CARD Resistance Gene"
+    }
+  ],
+  "top_association": "Detected primary mechanism: tetA(58) [Paenibacillus sp. LC231] cluster",
+  "status": "completed"
 }
 ```
 
-### POST /api/analysis
+## Model and annotation strategy
 
-Multipart form-data fields:
+The ML stack uses pre-trained, antibiotic-specific model artifacts and aligns each isolate to a fixed vocabulary. Prediction confidence is derived from probability output, while the most important determinants are extracted from the model-native gain importance ranking. These active sequence features are then mapped against CARD and E. coli reference databases to provide biological context to the resistance prediction.
 
-- `species` (string, required)
-- `antibiotic` (string, optional)
-- `fasta` (file, required)
+## Data assets
 
-Example response:
+The project includes the scientific assets required for end-to-end prediction and annotation:
 
-```json
-{
-  "reportId": "REP-123456",
-  "organismName": "Escherichia coli",
-  "confidence": 0.82,
-  "mappingSummary": "Potential beta-lactam resistance cluster",
-  "amrMarkers": ["blaTEM-1", "acrB", "mdtK"],
-  "associations": [
-    { "gene": "gyrA", "category": "Quinolone target" },
-    { "gene": "parC", "category": "Quinolone target" }
-  ]
-}
-```
+- server/fastapi_app/models/ — trained vocabularies and model pickles
+- server/card_database/ — CARD BLAST database
+- server/ecoli_database/ — E. coli reference BLAST database
+- server/fastapi_app/kmc/ — KMC CLI executables
 
-## Deployment on Render (recommended)
+## Research and clinical interpretation
 
-Deploy as two services from the same repo.
-
-### Backend (Web Service)
-
-- Root Directory: `server`
-- Build Command: `npm install`
-- Start Command: `node server.js`
-- Environment: Node
-
-### Frontend (Static Site)
-
-- Root Directory: `/`
-- Build Command: `npm install && npm run build`
-- Publish Directory: `dist`
-- Environment Variable: `VITE_API_BASE` set to your backend URL
-
-## CORS policy
-
-The API currently restricts CORS to approved origins, including the Render frontend and local development. Update the allow list in the API if you change the frontend URL.
-
-## Clinical and research context
-
-This interface is intended to support antimicrobial resistance research workflows and clinician-facing review. It does not replace clinical judgement or established diagnostic protocols. Any deployment should be validated against institutional governance and regulatory requirements.
-
-## Roadmap (suggested)
-
-- Replace mock analysis output with the mlAMRPred model pipeline
-- Authentication and role-based access
-- Audit logging and report export
-- Integration with LIMS/EHR workflows
+EC-AMRpred is intended as a research and decision-support platform. It is not a substitute for validated diagnostic testing or institutional clinical workflows. Outputs should be interpreted alongside laboratory evidence, antimicrobial stewardship context, and expert review.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+This project is distributed under the MIT License. See [LICENSE](LICENSE) for details.

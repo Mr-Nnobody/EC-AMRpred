@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: ec-amrpred-api
+    env: docker
+    rootDir: server
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: CORS_ORIGINS
+        value: https://your-frontend-domain.onrender.com,http://localhost:5173,http://127.0.0.1:5173
+      - key: MODEL_DIR
+        value: /app/fastapi_app/models
+      - key: CARD_DB_PATH
+        value: /app/card_database/card_db
+      - key: ECOLI_DB_PATH
+        value: /app/ecoli_database/ecoli_ref_db

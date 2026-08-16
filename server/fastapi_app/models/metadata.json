@@ -1,0 +1,23 @@
+{
+  "ampicillin": {
+    "antibiotic": "ampicillin",
+    "decision_threshold": 0.42,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for ampicillin model"
+  },
+  "cefotaxime": {
+    "antibiotic": "cefotaxime",
+    "decision_threshold": 0.5,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for cefotaxime model"
+  },
+  "ciprofloxacin": {
+    "antibiotic": "ciprofloxacin",
+    "decision_threshold": 0.48,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for ciprofloxacin model"
+  }
+}

@@ -1,0 +1,78 @@
+5. Make the frontend resilient
+   The UI should handle:
+
+empty file upload
+invalid FASTA
+network/API failures
+unsupported antibiotic
+missing model metadata
+slow prediction times
+This is the user-facing side of operational stability.
+
+6. Add tests before deployment
+   Start with:
+
+unit tests for metadata loading
+unit tests for active feature intersection on a mock or saved vector
+API tests for /api/v1/predict
+one end-to-end test with a valid FASTA and one invalid FASTA
+This is the difference between “works on my machine” and “deployment-ready”.
+
+7. Add environment and deployment config
+   You will want:
+
+.env or environment variables for ports, model paths, CORS origins
+separate dev/prod settings
+health checks
+logs
+secure file handling
+For deployment, keep the backend config in one place instead of hardcoding paths.
+
+8. Install and verify external runtime dependencies
+   Ensure production environment has:
+
+BLAST installed and in PATH
+KMC available and executable
+Python dependencies installed exactly
+compatible versions of lightgbm, joblib, numpy, pandas, scikit-learn, fastapi, uvicorn
+I would also pin versions in a requirements file to avoid runtime drift.
+
+9. Containerize it
+   For deployment, Docker is the best next step.
+
+Recommended minimal setup:
+
+one container for the FastAPI backend
+one container for the Vite frontend, or serve static build output via a lightweight server
+optionally a reverse proxy like Nginx
+This makes cloud deployment much easier.
+
+10. Choose a deployment target
+    Good options for this app:
+
+Azure App Service
+Azure Container Apps
+Render
+Railway
+Fly.io
+AWS ECS / Elastic Beanstalk
+If this is an MVP:
+
+simplest: deploy backend on Azure/Render
+frontend: static hosting on Vercel or Netlify
+API: backend on Render/Azure
+Recommended implementation order
+Real model artifact validation
+Fill metadata
+Validate actual prediction endpoint
+Add tests
+Containerize
+Deploy
+My recommendation
+The app is close to being functionally complete, but it is not “fully operational” until:
+
+real trained files exist
+metadata matches the real models
+end-to-end prediction is tested with real inputs
+deployment config is locked down
+If you want, I can produce the exact next-step checklist as a GitHub-style task list, or I can set up the deployment skeleton for the backend and frontend next.
