@@ -213,7 +213,7 @@ def get_top_gain_kmers(
     model: Any,
     vocab: List[str],
     sample_vector: np.ndarray,
-    top_n: int = 10,
+    top_n: int = 5,
 ) -> List[Dict[str, Any]]:
     """Use the global gain ranking from the trained selector/classifier and intersect it with the sample's active k-mers."""
     vocab_array = np.asarray(vocab, dtype=str)
@@ -319,7 +319,7 @@ def predict_strain_resistance(fasta_path: str, antibiotic: str) -> Dict[str, Any
     is_resistant = bool(probability >= decision_threshold)
     confidence_score = float(max(probability, 1.0 - probability))
 
-    active_kmers = get_top_gain_kmers(model, list(vocab), sample_vector, top_n=10)
+    active_kmers = get_top_gain_kmers(model, list(vocab), sample_vector, top_n=5)
     active_kmers_list = [entry["Kmer"] for entry in active_kmers if entry["Kmer"] in sample_kmers]
 
     return {
@@ -595,6 +595,7 @@ def run_full_amr_prediction_pipeline(
         vocab = joblib.load(vocab_path)
         decision_threshold = float(metadata.get("decision_threshold", 0.5))
         kmer_length = int(metadata.get("kmer_length", 10))
+        top_n = int(metadata.get("top_n", 5))
     elif os.path.exists(legacy_model_path) and os.path.exists(legacy_features_path):
         model = joblib.load(legacy_model_path)
         vocab = joblib.load(legacy_features_path)
@@ -630,7 +631,7 @@ def run_full_amr_prediction_pipeline(
     confidence = f"{confidence_score * 100:.1f}%"
 
     try:
-        top_gain_kmers = get_top_gain_kmers(model, list(vocab), binary_vector, top_n=10)
+        top_gain_kmers = get_top_gain_kmers(model, list(vocab), binary_vector, top_n=top_n)
         present_gain_kmers = [entry["Kmer"] for entry in top_gain_kmers if entry["Kmer"] in extracted_kmers]
         if not present_gain_kmers:
             present_gain_kmers = [kmer for kmer in extracted_kmers.keys()][:10]

@@ -8,8 +8,8 @@ const ANTIBIOTICS = [
   "ampicillin",
   "ciprofloxacin",
   "cefotaxime",
-  "azithromycin",
-  "meropenem",
+  "ceftazidime",
+  "cefuroxime",
 ];
 
 const getPendingReport = (

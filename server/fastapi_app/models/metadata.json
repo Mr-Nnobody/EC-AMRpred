@@ -19,5 +19,19 @@
     "kmer_length": 10,
     "top_n": 5,
     "description": "Placeholder metadata for ciprofloxacin model"
+  },
+  "ceftazidime": {
+    "antibiotic": "ceftazidime",
+    "decision_threshold": 0.44,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for ceftazidime model"
+  },
+  "cefuroxime": {
+    "antibiotic": "cefuroxime",
+    "decision_threshold": 0.46,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for cefuroxime model"
   }
 }
