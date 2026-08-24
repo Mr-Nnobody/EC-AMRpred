@@ -10,6 +10,9 @@ const ANTIBIOTICS = [
   "cefotaxime",
   "ceftazidime",
   "cefuroxime",
+  "gentamicin",
+  "piperacillin_tazobactam",
+  "trimethoprim_sulfamethoxazole",
 ];
 
 const getPendingReport = (

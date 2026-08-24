@@ -29,9 +29,30 @@
   },
   "cefuroxime": {
     "antibiotic": "cefuroxime",
-    "decision_threshold": 0.46,
+    "decision_threshold": 0.34,
     "kmer_length": 10,
     "top_n": 5,
     "description": "Placeholder metadata for cefuroxime model"
+  },
+  "gentamicin": {
+    "antibiotic": "gentamicin",
+    "decision_threshold": 0.44,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for gentamicin model"
+  },
+  "piperacillin_tazobactam": {
+    "antibiotic": "piperacillin_tazobactam",
+    "decision_threshold": 0.42,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for piperacillin_tazobactam model"
+  },
+  "trimethoprim_sulfamethoxazole": {
+    "antibiotic": "trimethoprim_sulfamethoxazole",
+    "decision_threshold": 0.46,
+    "kmer_length": 10,
+    "top_n": 5,
+    "description": "Placeholder metadata for trimethoprim_sulfamethoxazole model"
   }
 }
