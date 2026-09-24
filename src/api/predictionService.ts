@@ -43,7 +43,7 @@ export async function generatePredictionReport(
     if (error instanceof Error) {
       throw new Error(
         error.message.includes("Failed to fetch")
-          ? "Unable to reach the prediction backend. Make sure the FastAPI server is running on http://localhost:8000."
+          ? `Unable to reach the prediction backend at ${API_BASE}. Make sure the FastAPI server is running and CORS allows this frontend.`
           : error.message,
       );
     }
